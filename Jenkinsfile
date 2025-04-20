@@ -40,4 +40,24 @@ pipeline {
             }
         }
     }
+post{
+        success{
+            script{
+                emailext from: 'zulkarnineador7@gmail.com',
+                to: 'zulkarnineador7@gmail.com',
+                body: 'Build success for Demo CICD App',
+                subject: 'Build success for Demo CICD App'
+            }
+        }
+        failure{
+            script{
+                emailext from: 'zulkarnineador7@gmail.com',
+                to: 'zulkarnineador7@gmail.com',
+                body: 'Build Failed for Demo CICD App',
+                subject: 'Build Failed for Demo CICD App'
+            }
+        }
+    }
 }
+
+
