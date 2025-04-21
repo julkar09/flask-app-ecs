@@ -46,6 +46,19 @@ pipeline {
                 sh "docker compose up -d --build python_app"
             }
         }
+
+        stage("Clean Up") {
+            steps {
+                echo "Cleaning up Docker and workspace..."
+                sh '''
+                    docker rmi python-app:latest || true
+                    docker image prune -f || true
+                    docker container prune -f || true
+                    docker volume prune -f || true
+                    rm -f trivy-report.txt || true
+                '''
+            }
+        }
     }
 
     post {
@@ -74,4 +87,3 @@ pipeline {
         }
     }
 }
-
