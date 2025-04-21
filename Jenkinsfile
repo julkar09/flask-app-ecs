@@ -1,10 +1,17 @@
 pipeline {
-    agent { label "dev" };
+    agent { label "dev" }
 
     stages {
         stage("code") {
             steps {
                 git url: "https://github.com/julkar09/flask-app-ecs.git", branch: "work-branch"
+            }
+        }
+
+        stage("Trivy File System Scan") {
+            steps {
+                sh "trivy fs . > trivy-report.txt || true"
+                archiveArtifacts artifacts: 'trivy-report.txt', allowEmptyArchive: true
             }
         }
 
@@ -40,24 +47,31 @@ pipeline {
             }
         }
     }
-post{
-        success{
-            script{
-                emailext from: 'zulkarnineador7@gmail.com',
-                to: 'zulkarnineador7@gmail.com',
-                body: 'Build success for Demo CICD App',
-                subject: 'Build success for Demo CICD App'
+
+    post {
+        success {
+            script {
+                emailext(
+                    from: 'zulkarnineador7@gmail.com',
+                    to: 'zulkarnineador7@gmail.com',
+                    subject: 'Build SUCCESS for Demo CICD App',
+                    body: 'Build completed successfully.\n\nPlease find the Trivy scan report attached.',
+                    attachmentsPattern: 'trivy-report.txt'
+                )
             }
         }
-        failure{
-            script{
-                emailext from: 'zulkarnineador7@gmail.com',
-                to: 'zulkarnineador7@gmail.com',
-                body: 'Build Failed for Demo CICD App',
-                subject: 'Build Failed for Demo CICD App'
+
+        failure {
+            script {
+                emailext(
+                    from: 'zulkarnineador7@gmail.com',
+                    to: 'zulkarnineador7@gmail.com',
+                    subject: 'Build FAILED for Demo CICD App',
+                    body: 'Build failed!\n\nPlease review the attached Trivy scan report.',
+                    attachmentsPattern: 'trivy-report.txt'
+                )
             }
         }
     }
 }
-
 
