@@ -14,7 +14,7 @@ pipeline {
     }
 
     stages {
-        stage("code") {
+        stage("Checkout Code") {
             steps {
                 git url: "https://github.com/julkar09/flask-app-ecs.git", branch: "work-branch"
             }
@@ -23,14 +23,14 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 withSonarQubeEnv('MySonarQube') {
-                    sh '''
+                    sh """
                         sonar-scanner \
-                        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-                        -Dsonar.projectName=$SONAR_PROJECT_NAME \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
-                        -Dsonar.host.url=$SONAR_HOST_URL \
-                        -Dsonar.login=$SONAR_LOGIN
-                    '''
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=${SONAR_LOGIN}
+                    """
                 }
             }
         }
@@ -42,15 +42,15 @@ pipeline {
             }
         }
 
-        stage("build") {
+        stage("Build Docker Image") {
             steps {
                 sh "docker build -t python-app:latest ."
             }
         }
 
-        stage("test") {
+        stage("Test") {
             steps {
-                echo "test is done"
+                echo "Test is done"
             }
         }
 
@@ -58,8 +58,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "dockerHubCreds",
-                    passwordVariable: "dockerHubPass",
-                    usernameVariable: "dockerHubUser"
+                    usernameVariable: "dockerHubUser",
+                    passwordVariable: "dockerHubPass"
                 )]) {
                     sh 'docker login -u $dockerHubUser -p $dockerHubPass'
                     sh 'docker image tag python-app:latest $dockerHubUser/python-app:00'
@@ -68,7 +68,7 @@ pipeline {
             }
         }
 
-        stage("deploy") {
+        stage("Deploy") {
             steps {
                 sh "docker compose up -d --build python_app"
             }
