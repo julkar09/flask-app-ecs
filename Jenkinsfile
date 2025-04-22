@@ -20,6 +20,21 @@ pipeline {
             }
         }
 
+        stage("SonarQube Analysis") {
+            steps {
+                withSonarQubeEnv('MySonarQube') {
+                    sh '''
+                        sonar-scanner \
+                        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                        -Dsonar.projectName=$SONAR_PROJECT_NAME \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.login=$SONAR_LOGIN
+                    '''
+                }
+            }
+        }
+
         stage("Trivy File System Scan") {
             steps {
                 sh "trivy fs . > trivy-report.txt || true"
