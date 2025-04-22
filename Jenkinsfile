@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://3.108.60.30:9000' // Removed trailing slash
+        SONAR_HOST_URL = 'http://3.108.60.30:9000' // ✅ Removed trailing slash
         SONAR_PROJECT_KEY = 'flask-app-ecs'
         SONAR_PROJECT_NAME = 'flask-app-ecs'
         SONAR_LOGIN = 'squ_dc7626aae4bbb7007d9a7dc0f74be1615347ecd4'
@@ -23,14 +23,14 @@ pipeline {
         stage("SonarQube Analysis") {
             steps {
                 withSonarQubeEnv('MySonarQube') {
-                    sh """
+                    sh '''
                         sonar-scanner \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=${SONAR_HOST_URL} \
                         -Dsonar.login=${SONAR_LOGIN}
-                    """
+                    '''
                 }
             }
         }
