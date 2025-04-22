@@ -7,31 +7,16 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'http://3.108.60.30:9000' // ✅ No trailing slash
+        SONAR_HOST_URL = 'http://3.108.60.30:9000/'
         SONAR_PROJECT_KEY = 'flask-app-ecs'
         SONAR_PROJECT_NAME = 'flask-app-ecs'
         SONAR_LOGIN = 'squ_dc7626aae4bbb7007d9a7dc0f74be1615347ecd4'
     }
 
     stages {
-        stage("Checkout Code") {
+        stage("code") {
             steps {
                 git url: "https://github.com/julkar09/flask-app-ecs.git", branch: "work-branch"
-            }
-        }
-
-        stage("SonarQube Analysis") {
-            steps {
-                withSonarQubeEnv('MySonarQube') {
-                    sh '''
-                        sonar-scanner \
-                        -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-                        -Dsonar.projectName=$SONAR_PROJECT_NAME \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=$SONAR_HOST_URL \
-                        -Dsonar.login=$SONAR_LOGIN
-                    '''
-                }
             }
         }
 
@@ -42,15 +27,30 @@ pipeline {
             }
         }
 
-        stage("Build Docker Image") {
+        stage("SonarQube Analysis") {
+            steps {
+                withSonarQubeEnv('MySonarQube') {
+                    sh """
+                        sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=${SONAR_LOGIN}
+                    """
+                }
+            }
+        }
+
+        stage("build") {
             steps {
                 sh "docker build -t python-app:latest ."
             }
         }
 
-        stage("Test") {
+        stage("test") {
             steps {
-                echo "Test is done"
+                echo "test is done"
             }
         }
 
@@ -58,8 +58,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "dockerHubCreds",
-                    usernameVariable: "dockerHubUser",
-                    passwordVariable: "dockerHubPass"
+                    passwordVariable: "dockerHubPass",
+                    usernameVariable: "dockerHubUser"
                 )]) {
                     sh 'docker login -u $dockerHubUser -p $dockerHubPass'
                     sh 'docker image tag python-app:latest $dockerHubUser/python-app:00'
@@ -68,7 +68,7 @@ pipeline {
             }
         }
 
-        stage("Deploy") {
+        stage("deploy") {
             steps {
                 sh "docker compose up -d --build python_app"
             }
